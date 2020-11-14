@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class CommandManager {
@@ -29,7 +30,11 @@ public class CommandManager {
     public void dispatchCommand() {
         Message msg = this.event.getMessage();
         String content = msg.getContentRaw();
-        String invoke = content.substring(1);
+        final String[] split = event.getMessage().getContentRaw().replaceFirst("(?i)" + Pattern.quote(this.prefix), "").split("\\s+");
+
+        final String invoke = split[0].toLowerCase();
+
+
 
         if (!this.commands.containsKey(invoke)) {
             return; // command doesnt exist

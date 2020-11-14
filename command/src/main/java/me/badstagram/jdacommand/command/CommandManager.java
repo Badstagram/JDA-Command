@@ -5,10 +5,7 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CommandManager {
@@ -47,7 +44,7 @@ public class CommandManager {
         if (member == null || member.getUser().isBot() || event.isWebhookMessage()) {
             return;
         }
-        CommandContext ctx = new CommandContext(event);
+        CommandContext ctx = new CommandContext(event, this.prefix);
         ICommand cmd = this.commands.get(invoke);
         ApplicationInfo info = event.getJDA().retrieveApplicationInfo().complete();
         List<Long> ownerIds = new ArrayList<>();
@@ -64,8 +61,8 @@ public class CommandManager {
         }
 
 
-        List<Permission> botPermissions = cmd.getBotPermissions();
-        List<Permission> userPermissions = cmd.getUserPermissions();
+        List<Permission> botPermissions = cmd.getBotPermissions() == null ? Collections.emptyList() : cmd.getBotPermissions();
+        List<Permission> userPermissions = cmd.getUserPermissions()  == null ? Collections.emptyList() : cmd.getUserPermissions();
 
         String readableBotPermissions = botPermissions.stream()
                 .map(Permission::getName)

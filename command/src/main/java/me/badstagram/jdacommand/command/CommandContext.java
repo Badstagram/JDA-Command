@@ -5,18 +5,26 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class CommandContext implements ICommandContext {
     private final GuildMessageReceivedEvent event;
+    private final String prefix;
 
-    public CommandContext(GuildMessageReceivedEvent event) {
+
+    public CommandContext(GuildMessageReceivedEvent event, String prefix) {
         this.event = event;
+        this.prefix = prefix;
     }
 
     @Override
     public List<String> getArgs() {
-        return null;
+        final String[] split = this.event.getMessage().getContentRaw().replaceFirst("(?i)" + Pattern.quote(this.prefix), "").split("\\s+");
+
+        return Arrays.asList(split).subList(1, split.length);
+
     }
 
     @Override

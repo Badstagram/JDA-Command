@@ -21,7 +21,7 @@ public class CommandContext implements ICommandContext {
 
     @Override
     public List<String> getArgs() {
-        final String[] split = this.event.getMessage().getContentRaw().replaceFirst("(?i)" + Pattern.quote(this.prefix), "").split("\\s+");
+        final String[] split = this.event.getMessage().getContentRaw().replace(this.prefix, "").split("\\s+");
 
         return Arrays.asList(split).subList(1, split.length);
 

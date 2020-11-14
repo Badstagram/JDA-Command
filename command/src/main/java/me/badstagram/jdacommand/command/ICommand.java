@@ -1,3 +1,5 @@
+package me.badstagram.jdacommand.command;
+
 import net.dv8tion.jda.api.Permission;
 
 import java.util.List;

@@ -29,7 +29,11 @@ public class CommandManager {
         this.commands.put(cmd.getName(), cmd);
     }
 
-    public void dispatchCommand(String invoke) {
+    public void dispatchCommand() {
+        Message msg = this.event.getMessage();
+        String content = msg.getContentRaw();
+        String invoke = content.substring(1);
+
         if (!this.commands.containsKey(invoke)) {
             return; // command doesnt exist
         }
@@ -85,10 +89,10 @@ public class CommandManager {
         if (!self.hasPermission(userPermissions)) {
             MessageEmbed embed = new EmbedBuilder()
                     .setTitle("Insufficient Permissions")
-                    .setDescription(String.format("I need %s permissions to run this command.", readableUserPermissions))
+                    .setDescription(String.format("I need %s permissions to run this command.", readableBotPermissions))
                     .build();
 
-            ctx.replyOrDefault(embed, String.format("I need %s permissions to run this command.", readableUserPermissions));
+            ctx.replyOrDefault(embed, String.format("I need %s permissions to run this command.", readableBotPermissions));
             return;
         }
 

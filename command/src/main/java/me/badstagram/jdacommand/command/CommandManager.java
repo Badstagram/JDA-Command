@@ -44,7 +44,6 @@ public class CommandManager {
         if (member == null || member.getUser().isBot() || event.isWebhookMessage()) {
             return;
         }
-        CommandContext ctx = new CommandContext(event, this.prefix);
         ICommand cmd = this.commands.get(invoke);
         ApplicationInfo info = event.getJDA().retrieveApplicationInfo().complete();
         List<Long> ownerIds = new ArrayList<>();
@@ -72,6 +71,7 @@ public class CommandManager {
                 .map(Permission::getName)
                 .collect(Collectors.joining(", "));
 
+        CommandContext ctx = new CommandContext(event, this.prefix);
 
         if (!member.hasPermission(userPermissions)) {
             MessageEmbed embed = new EmbedBuilder()

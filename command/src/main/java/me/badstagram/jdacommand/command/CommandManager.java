@@ -14,9 +14,11 @@ import java.util.stream.Collectors;
 public class CommandManager {
     private final Map<String, ICommand> commands = new HashMap<>();
     private final GuildMessageReceivedEvent event;
+    private final String prefix;
 
-    public CommandManager(GuildMessageReceivedEvent event) {
+    public CommandManager(GuildMessageReceivedEvent event, String prefix) {
         this.event = event;
+        this.prefix = prefix;
     }
 
     public void addCommand(ICommand cmd) {
@@ -30,6 +32,9 @@ public class CommandManager {
     public void dispatchCommand(String invoke) {
         if (!this.commands.containsKey(invoke)) {
             return; // command doesnt exist
+        }
+        if (!this.event.getMessage().getContentRaw().startsWith(this.prefix)) {
+            return;
         }
 
         Member member = event.getMember();

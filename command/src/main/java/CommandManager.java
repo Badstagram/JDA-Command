@@ -1,0 +1,110 @@
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+public class CommandManager {
+    private final Map<String, ICommand> commands = new HashMap<>();
+    private final GuildMessageReceivedEvent event;
+
+    public CommandManager(GuildMessageReceivedEvent event) {
+        this.event = event;
+    }
+
+    public void addCommand(ICommand cmd) {
+        if (this.commands.containsKey(cmd.getName())) {
+            throw new IllegalArgumentException(String.format("Command with name %s already exists", cmd.getName()));
+        }
+
+        this.commands.put(cmd.getName(), cmd);
+    }
+
+    public void dispatchCommand(String invoke) {
+        if (!this.commands.containsKey(invoke)) {
+            return; // command doesnt exist
+        }
+
+        Member member = event.getMember();
+        Member self = event.getGuild().getSelfMember();
+
+        if (member == null || member.getUser().isBot() || event.isWebhookMessage()) {
+            return;
+        }
+        CommandContext ctx = new CommandContext(event);
+        ICommand cmd = this.commands.get(invoke);
+        ApplicationInfo info = event.getJDA().retrieveApplicationInfo().complete();
+        List<Long> ownerIds = new ArrayList<>();
+
+        if (info.getTeam() == null) {
+            ownerIds.add(info.getOwner().getIdLong());
+        } else {
+            ownerIds = info.getTeam()
+                    .getMembers()
+                    .stream()
+                    .map(TeamMember::getUser)
+                    .map(User::getIdLong)
+                    .collect(Collectors.toList());
+        }
+
+
+        List<Permission> botPermissions = cmd.getBotPermissions();
+        List<Permission> userPermissions = cmd.getUserPermissions();
+
+        String readableBotPermissions = botPermissions.stream()
+                .map(Permission::getName)
+                .collect(Collectors.joining(", "));
+
+        String readableUserPermissions = userPermissions.stream()
+                .map(Permission::getName)
+                .collect(Collectors.joining(", "));
+
+
+        if (!member.hasPermission(userPermissions)) {
+            MessageEmbed embed = new EmbedBuilder()
+                    .setTitle("Insufficient Permissions")
+                    .setDescription(String.format("You need %s permissions to run this command.", readableUserPermissions))
+                    .build();
+
+            ctx.replyOrDefault(embed, String.format("You need %s permissions to run this command.", readableUserPermissions));
+            return;
+        }
+
+        if (!self.hasPermission(userPermissions)) {
+            MessageEmbed embed = new EmbedBuilder()
+                    .setTitle("Insufficient Permissions")
+                    .setDescription(String.format("I need %s permissions to run this command.", readableUserPermissions))
+                    .build();
+
+            ctx.replyOrDefault(embed, String.format("I need %s permissions to run this command.", readableUserPermissions));
+            return;
+        }
+
+        if (cmd.isCommandRestricted() && !ownerIds.contains(member.getIdLong())) {
+            MessageEmbed embed = new EmbedBuilder()
+                    .setTitle("Insufficient Permissions")
+                    .setDescription("This command is restricted to the bot owner(s).")
+                    .build();
+
+            ctx.replyOrDefault(embed, "This command is restricted to the bot owner(s).");
+            return;
+        }
+
+        if (cmd.isNSFW() && !event.getChannel().isNSFW()) {
+            MessageEmbed embed = new EmbedBuilder()
+                    .setTitle("NSFW Command")
+                    .setDescription("This command can only be used in NSFW channels.")
+                    .build();
+
+            ctx.replyOrDefault(embed, "This command can only be used in NSFW channels.");
+            return;
+        }
+
+        cmd.dispatchCommand(ctx);
+    }
+}

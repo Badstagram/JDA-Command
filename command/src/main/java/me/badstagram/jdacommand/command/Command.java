@@ -80,6 +80,7 @@ public abstract class Command {
             } else ctx.getClient().applyCooldown(key, cooldown);
         }
 
+
         this.execute(ctx);
 
 

@@ -70,14 +70,15 @@ public abstract class Command {
 
         final String key = String.format("U:%d|S:%d", usr.getIdLong(), ctx.getGuild().getIdLong());
 
-        int remaining = ctx.getClient().getRemainingCooldown(key);
 
-        if (remaining >= 0) {
-            ctx.reply(String.format("This command is on cooldown for another %s", FormatUtil.secondsToTime(remaining)));
-            return;
+        if (this.cooldown > 0) {
+            int remaining = ctx.getClient().getRemainingCooldown(key);
+
+            if (remaining > 0) {
+                ctx.reply(String.format("This command is on cooldown for another %s", FormatUtil.secondsToTime(remaining)));
+                return;
+            } else ctx.getClient().applyCooldown(key, cooldown);
         }
-        else ctx.getClient().applyCooldown(key, cooldown);
-
 
         this.execute(ctx);
 

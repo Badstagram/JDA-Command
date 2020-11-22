@@ -1,9 +1,14 @@
 package me.badstagram.jdacommand.command;
 
+import me.badstagram.jdacommand.command.utiil.FormatUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 
+import java.text.Format;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public abstract class Command {
@@ -16,6 +21,8 @@ public abstract class Command {
     protected String[] aliases = new String[0];
     protected Permission[] botPermissions = Permission.EMPTY_PERMISSIONS;
     protected Permission[] userPermissions = Permission.EMPTY_PERMISSIONS;
+
+    protected final Map<String, Long> cooldowns = new HashMap<>();
 
     protected abstract void execute(CommandContext ctx);
 
@@ -57,6 +64,26 @@ public abstract class Command {
             ctx.getChannel().sendMessage(":x: You don't have the right permissions for this command. You need Bot Owner").queue();
             return;
         }
+
+        long expireTime = OffsetDateTime.now()
+                .plusSeconds(this.cooldown)
+                .toEpochSecond();
+
+        final String key = String.format("U:%d|S:%d", usr.getIdLong(), ctx.getGuild().getIdLong());
+        if (this.cooldown > 0) {
+            cooldowns.put(key, expireTime);
+        }
+
+        if (this.cooldowns.containsKey(key)) {
+            long expire = this.cooldowns.get(key);
+            long now = OffsetDateTime.now().toEpochSecond();
+
+            if (expire > now) {
+                ctx.reply(String.format("This command is on cooldown for another %s", FormatUtil.secondsToTime(expire)));
+                return;
+            }
+        }
+
 
         this.execute(ctx);
 

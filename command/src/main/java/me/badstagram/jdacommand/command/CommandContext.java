@@ -11,19 +11,19 @@ import java.util.regex.Pattern;
 
 public class CommandContext implements ICommandContext {
     private final GuildMessageReceivedEvent event;
-    private final String prefix;
+    private final CommandClient client;
+    private final String argsRaw;
 
 
-    public CommandContext(GuildMessageReceivedEvent event, String prefix) {
+    public CommandContext(GuildMessageReceivedEvent event, String argsRaw, CommandClient client) {
         this.event = event;
-        this.prefix = prefix;
+        this.client = client;
+        this.argsRaw = argsRaw;
     }
 
     @Override
     public List<String> getArgs() {
-        final String[] split = this.event.getMessage().getContentRaw().replace(this.prefix, "").split("\\s+");
-
-        return Arrays.asList(split).subList(1, split.length);
+        return Arrays.asList(this.argsRaw.split("\\s+"));
 
     }
 
@@ -92,5 +92,10 @@ public class CommandContext implements ICommandContext {
     @Override
     public void replyPinging(String msg) {
         this.reply(String.format("%s, %s", this.getAuthor().getAsMention(), msg));
+    }
+
+    @Override
+    public CommandClient getClient() {
+        return null;
     }
 }

@@ -96,6 +96,6 @@ public class CommandContext implements ICommandContext {
 
     @Override
     public CommandClient getClient() {
-        return null;
+        return this.client;
     }
 }

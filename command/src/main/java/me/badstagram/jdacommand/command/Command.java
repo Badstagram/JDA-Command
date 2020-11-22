@@ -22,7 +22,6 @@ public abstract class Command {
     protected Permission[] botPermissions = Permission.EMPTY_PERMISSIONS;
     protected Permission[] userPermissions = Permission.EMPTY_PERMISSIONS;
 
-    protected final Map<String, Long> cooldowns = new HashMap<>();
 
     protected abstract void execute(CommandContext ctx);
 
@@ -70,19 +69,14 @@ public abstract class Command {
                 .toEpochSecond();
 
         final String key = String.format("U:%d|S:%d", usr.getIdLong(), ctx.getGuild().getIdLong());
-        if (this.cooldown > 0) {
-            cooldowns.put(key, expireTime);
-        }
 
-        if (this.cooldowns.containsKey(key)) {
-            long expire = this.cooldowns.get(key);
-            long now = OffsetDateTime.now().toEpochSecond();
+        int remaining = ctx.getClient().getRemainingCooldown(key);
 
-            if (expire < now) {
-                ctx.reply(String.format("This command is on cooldown for another %s", FormatUtil.secondsToTime(expire)));
-                return;
-            }
+        if (remaining >= 0) {
+            ctx.reply(String.format("This command is on cooldown for another %s", FormatUtil.secondsToTime(remaining)));
+            return;
         }
+        else ctx.getClient().applyCooldown(key, cooldown);
 
 
         this.execute(ctx);

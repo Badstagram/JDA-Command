@@ -5,14 +5,20 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.internal.utils.Checks;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class CommandClient extends ListenerAdapter {
     private final String ownerId;
     private final String[] coOwnerIds;
     private final String prefix;
     private final HashMap<String, Command> commands;
+    protected final Map<String, OffsetDateTime> cooldowns = new HashMap<>();
+
 
     public CommandClient(String ownerId, String[] coOwnerIds, String prefix, HashMap<String, Command> commands) {
 
@@ -78,4 +84,34 @@ public class CommandClient extends ListenerAdapter {
     private String[] splitOnPrefix(String content, int len) {
         return Arrays.copyOf(content.substring(len).trim().split("\\s+", 2), 2);
     }
+
+    public int getRemainingCooldown(String name)
+    {
+        if(cooldowns.containsKey(name))
+        {
+            int time = (int) Math.ceil(OffsetDateTime.now().until(cooldowns.get(name), ChronoUnit.MILLIS) / 1000D);
+            if(time<=0)
+            {
+                cooldowns.remove(name);
+                return 0;
+            }
+            return time;
+        }
+        return 0;
+    }
+
+
+    public void applyCooldown(String name, int seconds)
+    {
+        cooldowns.put(name, OffsetDateTime.now().plusSeconds(seconds));
+    }
+
+
+    public void cleanCooldowns()
+    {
+        OffsetDateTime now = OffsetDateTime.now();
+        cooldowns.keySet().stream().filter((str) -> (cooldowns.get(str).isBefore(now)))
+                .collect(Collectors.toList()).forEach(cooldowns::remove);
+    }
+
 }

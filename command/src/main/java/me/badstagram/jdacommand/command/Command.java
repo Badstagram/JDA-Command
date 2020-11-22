@@ -53,6 +53,11 @@ public abstract class Command {
             return;
         }
 
+        if (!usr.getId().equals(ctx.getClient().getOwnerId())) {
+            ctx.getChannel().sendMessage(":x: You don't have the right permissions for this command. You need Bot Owner").queue();
+            return;
+        }
+
         this.execute(ctx);
 
 

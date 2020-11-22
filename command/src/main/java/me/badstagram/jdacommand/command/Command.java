@@ -78,7 +78,7 @@ public abstract class Command {
             long expire = this.cooldowns.get(key);
             long now = OffsetDateTime.now().toEpochSecond();
 
-            if (expire > now) {
+            if (expire < now) {
                 ctx.reply(String.format("This command is on cooldown for another %s", FormatUtil.secondsToTime(expire)));
                 return;
             }

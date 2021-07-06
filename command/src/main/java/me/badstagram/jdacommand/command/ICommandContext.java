@@ -33,4 +33,6 @@ public interface ICommandContext {
 
     void replyPinging(String msg);
 
+    CommandClient getClient();
+
 }
